@@ -26,4 +26,4 @@ License: MIT – independent implementations are welcome.
 ## Part of Ishtaria
 
 Ishtaria is an open-source, persistent, federated virtual planet of Earth size.
-Documentation: https://vitexsoftware.github.io/ishtaria-docs/ · All repositories: https://github.com/VitexSoftware?q=ishtaria
+Documentation: https://vitexsoftware.github.io/ishtaria-docs/ · All repositories: https://git.vitexsoftware.com/Ishtaria
