@@ -206,6 +206,15 @@ def check_disk(disk_dir, allow_draft):
         model(manifest_path, manifest["player_model"])
 
     for npc in npcs.values():
+        movement = npc.get("movement")
+        if movement:
+            beat = movement.get("waypoints", [])
+            if movement["kind"] == "patrol" and len(beat) < 2:
+                err(disk_dir / "npcs", f"{npc['id']}: a patrol needs waypoints")
+            if movement["kind"] == "wander" and beat:
+                err(disk_dir / "npcs", f"{npc['id']}: a wanderer has no waypoints")
+            if any(tag.startswith("shop:") for tag in npc.get("tags", [])):
+                err(disk_dir / "npcs", f"{npc['id']}: a merchant cannot walk away from its shop")
         if "portrait" in npc:
             media(disk_dir / "npcs", npc["portrait"], "portrait")
         if "model" in npc.get("character", {}):

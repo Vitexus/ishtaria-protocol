@@ -634,6 +634,60 @@
           "bio_key": {
             "$ref": "#/$defs/text_key"
           },
+          "movement": {
+            "description": "The character walks instead of standing at its place. Where it is depends only on its id, its place and the time (nothing is stored); servers send a route of waypoints and clients walk the character along it, with the Walk clip of its model while it moves and Idle while it stands. A character that keeps a shop (tag shop:<id>) cannot walk.",
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "kind"
+            ],
+            "properties": {
+              "kind": {
+                "enum": [
+                  "wander",
+                  "patrol"
+                ],
+                "description": "wander: walks to spots near its place, standing between walks; patrol: walks the loop of waypoints."
+              },
+              "radius_m": {
+                "type": "number",
+                "minimum": 1,
+                "maximum": 200,
+                "default": 25,
+                "description": "How far from its place a wanderer goes."
+              },
+              "speed_m_s": {
+                "type": "number",
+                "minimum": 0.2,
+                "maximum": 8,
+                "default": 1,
+                "description": "Walking speed."
+              },
+              "pause_s": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 120,
+                "default": 6,
+                "description": "How long it stands between walks (at each waypoint of a patrol)."
+              },
+              "waypoints": {
+                "type": "array",
+                "minItems": 2,
+                "maxItems": 16,
+                "description": "The loop of a patrol: metres east and south of the place, as offset_m of a building. Not for wanderers.",
+                "items": {
+                  "type": "array",
+                  "minItems": 2,
+                  "maxItems": 2,
+                  "items": {
+                    "type": "number",
+                    "minimum": -1000,
+                    "maximum": 1000
+                  }
+                }
+              }
+            }
+          },
           "size": {
             "description": "How many times taller than the model as authored the character stands (a god towers over men); default 1.",
             "type": "number",
