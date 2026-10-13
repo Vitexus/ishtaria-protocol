@@ -198,6 +198,11 @@ def check_disk(disk_dir, allow_draft):
         if abs(offset[0]) > core[0] or abs(offset[1]) > core[1]:
             err(path, f"{place['id']}: terrain anchor must stay inside the feathered core")
 
+    if "player_model" in manifest:
+        if "player_character" not in manifest:
+            err(manifest_path, "player_model needs player_character, the look it replaces")
+        model(manifest_path, manifest["player_model"])
+
     for npc in npcs.values():
         if "portrait" in npc:
             media(disk_dir / "npcs", npc["portrait"], "portrait")
