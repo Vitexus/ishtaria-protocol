@@ -88,6 +88,11 @@
           "description": "Cover image (png or jpg, at most 1 MiB) that clients show when they connect to a server using the disk.",
           "$ref": "#/$defs/media_path"
         },
+        "player_character": {
+          "description": "The character every new player of a world using this disk plays, as <pack>/<skin> of the character creator (for example protagonists/criminalMaleA). Players then choose only their nickname; the first disk in the order of application that sets it wins. Existing players keep their character. Without it players choose a look.",
+          "type": "string",
+          "pattern": "^[a-z]+/[A-Za-z0-9_]{1,48}$"
+        },
         "languages": {
           "type": "array",
           "minItems": 1,
@@ -467,6 +472,60 @@
                 "minimum": 50,
                 "maximum": 5000,
                 "description": "Distance up to which the server announces the building; default 600."
+              }
+            }
+          },
+          "terrain": {
+            "type": "object",
+            "description": "A landscape patch anchored at the place: real-world relief around the site (river banks, tells), replacing the base terrain and procedural relief inside its rectangle. Heights are decimetres above the anchor's placed height, so the patch is portable between worlds.",
+            "additionalProperties": false,
+            "required": [
+              "heightmap",
+              "extent_m"
+            ],
+            "properties": {
+              "heightmap": {
+                "type": "string",
+                "pattern": "^media/terrain/[a-z0-9_]+\\.png$",
+                "description": "A 16-bit greyscale PNG (at most 4 MiB) whose value 0x8000 is the anchor's placed height; other pixels are decimetres above it."
+              },              "water": {
+                "type": "string",
+                "pattern": "^media/terrain/[a-z0-9_]+\\.png$",
+                "description": "An equally sized 16-bit greyscale PNG: 0 is dry land, other pixels the water surface in decimetres above the anchor (0x8000), a river at its historical course."
+              },
+              "extent_m": {
+                "type": "array",
+                "minItems": 2,
+                "maxItems": 2,
+                "items": {
+                  "type": "number",
+                  "exclusiveMinimum": 100,
+                  "maximum": 10000
+                },
+                "description": "The size of the rectangle in the client's local x and z frame, centred on offset_m."
+              },
+              "offset_m": {
+                "type": "array",
+                "minItems": 2,
+                "maxItems": 2,
+                "items": {
+                  "type": "number",
+                  "minimum": -5000,
+                  "maximum": 5000
+                },
+                "description": "The centre of the rectangle from the place anchor in metres along the local x and z axes; the anchor must stay inside the feathered core."
+              },
+              "feather_m": {
+                "type": "number",
+                "minimum": 10,
+                "maximum": 500,
+                "description": "Width of the margin across which the patch blends into the base terrain; default 100."
+              },
+              "visible_m": {
+                "type": "number",
+                "minimum": 100,
+                "maximum": 5000,
+                "description": "Distance from the patch edge up to which the server announces it; default 1200."
               }
             }
           },

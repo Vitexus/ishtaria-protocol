@@ -160,12 +160,51 @@ def check_disk(disk_dir, allow_draft):
         elif file.read_bytes()[:4] != b"glTF":
             err(path, f"{relative} is not a glTF binary")
 
+    def png16(path, relative):
+        """Check a 16-bit greyscale PNG and return (width, height) or None."""
+        file = disk_dir / relative
+        if not file.is_file():
+            err(path, f"media file {relative} missing")
+            return None
+        if file.stat().st_size > 4 << 20:
+            err(path, f"{relative} is larger than {4 << 20} bytes")
+        data = file.read_bytes()
+        if data[:8] != b"\x89PNG\r\n\x1a\n" or data[12:16] != b"IHDR":
+            err(path, f"{relative} is not a PNG")
+            return None
+        width, height, depth, color = int.from_bytes(data[16:20], "big"), int.from_bytes(data[20:24], "big"), data[24], data[25]
+        if depth != 16 or color != 0:
+            err(path, f"{relative} must be a 16-bit greyscale PNG")
+            return None
+        if width < 16 or height < 16 or width * height > 4 << 20:
+            err(path, f"{relative} has invalid dimensions {width}x{height}")
+            return None
+        return (width, height)
+
+    def terrain(path, place):
+        patch = place.get("terrain")
+        if not patch:
+            return
+        size = png16(path, patch["heightmap"])
+        water = patch.get("water")
+        if water:
+            other = png16(path, water)
+            if size and other and size != other:
+                err(path, f"{water}: water mask must match the heightmap size {size[0]}x{size[1]}")
+        extent = patch["extent_m"]
+        offset = patch.get("offset_m", [0, 0])
+        feather = patch.get("feather_m", 100)
+        core = (extent[0] / 2 - feather, extent[1] / 2 - feather)
+        if abs(offset[0]) > core[0] or abs(offset[1]) > core[1]:
+            err(path, f"{place['id']}: terrain anchor must stay inside the feathered core")
+
     for npc in npcs.values():
         if "portrait" in npc:
             media(disk_dir / "npcs", npc["portrait"], "portrait")
         if "model" in npc.get("character", {}):
             model(disk_dir / "npcs", npc["character"]["model"])
     for place in places.values():
+        terrain(disk_dir / "places", place)
         structure = place.get("structure")
         if structure:
             if "scenery" in place:
