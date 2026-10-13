@@ -397,7 +397,8 @@
               "preset": {
                 "enum": [
                   "town",
-                  "graveyard"
+                  "graveyard",
+                  "fortress"
                 ]
               },
               "size": {
@@ -406,6 +407,66 @@
                   "village",
                   "town"
                 ]
+              }
+            }
+          },
+          "structure": {
+            "type": "object",
+            "description": "A building of the datadisk itself, drawn at the place and walkable by its mesh (stairs up to 0.45 m per step, arches, platforms). Excludes scenery.",
+            "additionalProperties": false,
+            "required": [
+              "model"
+            ],
+            "properties": {
+              "model": {
+                "type": "string",
+                "pattern": "^media/models/([a-z0-9_]+/)*[a-z0-9_]+\\.glb$",
+                "description": "A self-contained glTF binary (<= 4 MiB, metres, +Y up) whose origin stands on the ground."
+              },
+              "collision": {
+                "type": "string",
+                "pattern": "^media/models/([a-z0-9_]+/)*[a-z0-9_]+\\.glb$",
+                "description": "A simpler glTF binary used for collision and walking instead of model."
+              },
+              "scale_m": {
+                "type": "number",
+                "minimum": 0.05,
+                "maximum": 20,
+                "description": "Metres per model unit; default 1."
+              },
+              "yaw_deg": {
+                "type": "number",
+                "minimum": -360,
+                "maximum": 360,
+                "description": "Turn about the vertical axis; default 0."
+              },
+              "offset_m": {
+                "type": "array",
+                "minItems": 2,
+                "maxItems": 2,
+                "items": {
+                  "type": "number",
+                  "minimum": -2000,
+                  "maximum": 2000
+                },
+                "description": "Shift from the anchor of the place in metres along the client's local x and z axes."
+              },
+              "ground_m": {
+                "type": "array",
+                "minItems": 2,
+                "maxItems": 2,
+                "items": {
+                  "type": "number",
+                  "minimum": -1000,
+                  "maximum": 1000
+                },
+                "description": "The point of the model (x and z in model units, before the turn) that stands on the ground, such as the foot of its stairs; the model's height follows the terrain there. Defaults to the origin."
+              },
+              "visible_m": {
+                "type": "number",
+                "minimum": 50,
+                "maximum": 5000,
+                "description": "Distance up to which the server announces the building; default 600."
               }
             }
           },

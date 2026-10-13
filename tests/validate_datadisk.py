@@ -151,9 +151,28 @@ def check_disk(disk_dir, allow_draft):
         if file.stat().st_size > media_limits[extension]:
             err(path, f"{relative} is larger than {media_limits[extension]} bytes")
 
+    def model(path, relative):
+        file = disk_dir / relative
+        if not file.is_file():
+            err(path, f"model {relative} missing")
+        elif file.stat().st_size > 4 << 20:
+            err(path, f"{relative} is larger than {4 << 20} bytes")
+        elif file.read_bytes()[:4] != b"glTF":
+            err(path, f"{relative} is not a glTF binary")
+
     for npc in npcs.values():
         if "portrait" in npc:
             media(disk_dir / "npcs", npc["portrait"], "portrait")
+        if "model" in npc.get("character", {}):
+            model(disk_dir / "npcs", npc["character"]["model"])
+    for place in places.values():
+        structure = place.get("structure")
+        if structure:
+            if "scenery" in place:
+                err(disk_dir / "places", f"{place['id']}: scenery and structure exclude each other")
+            for relative in (structure["model"], structure.get("collision")):
+                if relative:
+                    model(disk_dir / "places", relative)
     for track in music.values():
         key(disk_dir / "music", track["title_key"])
         media(disk_dir / "music", track["file"], "music")
