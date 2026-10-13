@@ -569,6 +569,37 @@
             "type": "boolean",
             "description": "New characters of the world appear here. At most one place of a disk; with several disks the first one in the order of application wins."
           },
+          "locate": {
+            "description": "Where on the planet the place lies, measured from another place (the real geography of a story): distance_m from `from` in the direction bearing_deg of the map of `from`, that is the frame of its landscape patch and buildings (0 is up the map, north; 90 is east), along a great circle. The planet is not the Earth, so the site is the nearest one within tolerance_m of that point that satisfies the place's `requires`; placement fails when there is none. Not with `at`.",
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "from",
+              "bearing_deg",
+              "distance_m"
+            ],
+            "properties": {
+              "from": {
+                "$ref": "#/$defs/ref"
+              },
+              "bearing_deg": {
+                "type": "number",
+                "minimum": 0,
+                "exclusiveMaximum": 360
+              },
+              "distance_m": {
+                "type": "number",
+                "minimum": 1,
+                "maximum": 20000000
+              },
+              "tolerance_m": {
+                "type": "number",
+                "minimum": 1,
+                "maximum": 5000000,
+                "description": "How far from the exact point a site may lie; default a twentieth of the distance, at least 30 m."
+              }
+            }
+          },
           "at": {
             "enum": [
               "gate",

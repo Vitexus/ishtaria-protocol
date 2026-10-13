@@ -113,7 +113,7 @@ def check_disk(disk_dir, allow_draft):
 
     for place in places.values():
         key(disk_dir / "places", place["name_key"])
-        for ref in [place.get("parent")] + [n["place"] for n in place.get("requires", {}).get("near", [])]:
+        for ref in [place.get("parent"), place.get("locate", {}).get("from")] + [n["place"] for n in place.get("requires", {}).get("near", [])]:
             if ref and local(ref) and ref not in places:
                 err(disk_dir / "places", f"{place['id']}: unknown place {ref}")
         # A place cannot be its own ancestor.
