@@ -198,6 +198,8 @@ def check_disk(disk_dir, allow_draft):
         if abs(offset[0]) > core[0] or abs(offset[1]) > core[1]:
             err(path, f"{place['id']}: terrain anchor must stay inside the feathered core")
 
+    if "player_body" in manifest and "player_character" not in manifest:
+        err(manifest_path, "player_body needs player_character, the character it describes")
     if "player_model" in manifest:
         if "player_character" not in manifest:
             err(manifest_path, "player_model needs player_character, the look it replaces")
