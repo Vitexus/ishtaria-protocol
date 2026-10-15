@@ -198,12 +198,70 @@ def check_disk(disk_dir, allow_draft):
         if abs(offset[0]) > core[0] or abs(offset[1]) > core[1]:
             err(path, f"{place['id']}: terrain anchor must stay inside the feathered core")
 
+    def pgm(path, relative, maximum):
+        """Check a binary P5 PGM and return (width, height, maxval) or None."""
+        file = disk_dir / relative
+        if not file.is_file():
+            err(path, f"media file {relative} missing")
+            return None
+        if file.stat().st_size > 160 << 20:
+            err(path, f"{relative} is larger than {160 << 20} bytes")
+            return None
+        tokens, cursor = [], 0
+        data = file.read_bytes()
+        while len(tokens) < 4 and cursor < len(data):
+            while cursor < len(data) and data[cursor : cursor + 1].isspace():
+                cursor += 1
+            if cursor < len(data) and data[cursor] == ord("#"):
+                while cursor < len(data) and data[cursor] != ord("\n"):
+                    cursor += 1
+                continue
+            start = cursor
+            while cursor < len(data) and not data[cursor : cursor + 1].isspace() and data[cursor] != ord("#"):
+                cursor += 1
+            if start < cursor:
+                tokens.append(data[start:cursor])
+        if len(tokens) < 4 or tokens[0] != b"P5":
+            err(path, f"{relative} is not a binary P5 PGM")
+            return None
+        try:
+            width, height, maxval = int(tokens[1]), int(tokens[2]), int(tokens[3])
+        except ValueError:
+            err(path, f"{relative}: invalid PGM header")
+            return None
+        if width != 2 * height or width < 16 or height < 8 or maxval != maximum:
+            expected = "8-bit (maxval 255)" if maximum == 255 else "16-bit (maxval 65535)"
+            err(
+                path,
+                f"{relative} must be {expected}, width = 2 x height, got {width}x{height} maxval {maxval}",
+            )
+            return None
+        sample = 2 if maximum > 255 else 1
+        if len(data) - cursor < width * height * sample:
+            err(path, f"{relative}: raster is truncated")
+            return None
+        return (width, height, maxval)
+
+    def world_terrain(path, manifest):
+        section = manifest.get("world")
+        if not section:
+            return
+        patch = section["terrain"]
+        heightmap = pgm(path, patch["heightmap"], 65535)
+        water = pgm(path, patch["water"], 255)
+        if heightmap and water and heightmap[:2] != water[:2]:
+            err(
+                path,
+                f"{patch['water']}: water mask must match the heightmap size {heightmap[0]}x{heightmap[1]}",
+            )
+
     if "player_body" in manifest and "player_character" not in manifest:
         err(manifest_path, "player_body needs player_character, the character it describes")
     if "player_model" in manifest:
         if "player_character" not in manifest:
             err(manifest_path, "player_model needs player_character, the look it replaces")
         model(manifest_path, manifest["player_model"])
+    world_terrain(manifest_path, manifest)
 
     for npc in npcs.values():
         movement = npc.get("movement")
@@ -359,6 +417,9 @@ def check_composition(summaries):
         for other in manifest.get("conflicts", []):
             if other in by_id:
                 errors.append(f"{summary['id']}: conflicts with {other}")
+    worlds = [s["id"] for s in summaries if s["manifest"].get("world")]
+    if len(worlds) > 1:
+        errors.append(f"two disks define the world's planet: {' and '.join(worlds)}")
     return errors
 
 

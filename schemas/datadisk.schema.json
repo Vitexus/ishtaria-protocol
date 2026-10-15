@@ -157,6 +157,39 @@
             "type": "string",
             "pattern": "^[a-z][a-z0-9_]{1,31}$"
           }
+        },
+        "world": {
+          "description": "The real planet a world using this disk is generated on (maximum historical fidelity). Only one selected disk may define it; the world's heightmap strip is then rendered from these maps by ishtaria-worldgen --earth instead of the procedural noise.",
+          "$ref": "#/$defs/world"
+        }
+      }
+    },
+    "world": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "terrain"
+      ],
+      "properties": {
+        "terrain": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "heightmap",
+            "water"
+          ],
+          "properties": {
+            "heightmap": {
+              "type": "string",
+              "pattern": "^media/world/[a-z0-9_]+\\.pgm$",
+              "description": "Equirectangular relief of the whole planet as a binary P5 PGM (16-bit, maxval 65535, big-endian; width = 2 x height), row 0 at +90 degrees, column 0 at -180 degrees. A pixel is the elevation in metres as a signed 16-bit value: 0 is sea level, land is positive, bathymetry is negative. The worldgen strips it onto the cube-sphere with latitude = asin(y) and longitude = atan2(z, x), so the server's compass is the real north of the planet."
+            },
+            "water": {
+              "type": "string",
+              "pattern": "^media/world/[a-z0-9_]+\\.pgm$",
+              "description": "Water mask of the same size (P5, 8-bit, maxval 255): 0 is land, 255 is water (sea, lakes, rivers). It overrides the heights at the coastline: water never rises above sea level and land never sinks below it, so shallow seas (the Persian Gulf) stay sea and dry depressions (Qattara) stay land however the 8-bit strip quantises them. Rivers and reconstructed historical shorelines live here."
+            }
+          }
         }
       }
     },
@@ -518,6 +551,11 @@
                 "type": "string",
                 "pattern": "^media/terrain/[a-z0-9_]+\\.png$",
                 "description": "An equally sized 16-bit greyscale PNG: 0 is dry land, other pixels the water surface in decimetres above the anchor (0x8000), a river at its historical course."
+              },
+              "clear": {
+                "type": "string",
+                "pattern": "^media/terrain/[a-z0-9_]+\\.png$",
+                "description": "A greyscale PNG of any size (8 or 16 bit, at most 4 million pixels) over the whole rectangle: pixels above zero are built or tilled ground (streets, houses, squares, fields) where the server puts no wild trees, rocks, flowers or animals."
               },
               "extent_m": {
                 "type": "array",
