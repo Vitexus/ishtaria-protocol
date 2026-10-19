@@ -79,7 +79,9 @@ The client names its interface language (two letters) in each dialogue request; 
 and the spoken line **in that language**, and never stores the language. A language the disk does not
 declare simply gets no spoken line; texts fall back to English on the client. Adding a language to a disk:
 (1) `i18n/<language>.yaml`, (2) list it in `languages`, (3) a model for it in `voice/voices.yaml`,
-(4) a build dependency on that voice model, (5) optionally recordings in `media/voice/<language>/`.
+(4) a build dependency on that voice model package (e.g. `piper-voice-cs-cz-jirka-medium`,
+`piper-voice-en-us-libritts-r-medium` installing under `/usr/share/piper/voices/`),
+(5) optionally recordings in `media/voice/<language>/`.
 
 ## 6. Spoken lines
 
