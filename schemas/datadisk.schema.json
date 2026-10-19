@@ -9,6 +9,27 @@
       "type": "string",
       "pattern": "^[a-z][a-z0-9_]{0,47}$"
     },
+    "wildlife_entry": {
+      "description": "One scenery or fauna catalog id with a relative weight for a place wildlife overlay.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "weight"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z][A-Za-z0-9_.]{0,95}$",
+          "description": "An id from the server's world_objects.json or world_fauna.json catalogs (for example nature.tree_palmTall)."
+        },
+        "weight": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "maximum": 1000
+        }
+      }
+    },
     "ref": {
       "description": "Reference to a local id, or to <disk>:<id> of a declared dependency.",
       "type": "string",
@@ -87,6 +108,14 @@
         "cover": {
           "description": "Cover image (png or jpg, at most 1 MiB) that clients show when they connect to a server using the disk.",
           "$ref": "#/$defs/media_path"
+        },
+        "cover_music": {
+          "description": "Track id from music/*.yaml played once while the cover image is shown (logo jingle; prefer loop: false).",
+          "$ref": "#/$defs/local_id"
+        },
+        "ambient_music": {
+          "description": "Track id from music/*.yaml played as the default background when the player is outside every place music radius (e.g. plains travel).",
+          "$ref": "#/$defs/local_id"
         },
         "player_character": {
           "description": "The character every new player of a world using this disk plays, as <pack>/<skin> of the character creator (for example protagonists/criminalMaleA). Players then choose only their nickname; the first disk in the order of application that sets it wins. Existing players keep their character. Without it players choose a look.",
@@ -603,6 +632,39 @@
             "maximum": 5000,
             "description": "Distance from the place within which its music is heard (fades towards the edge); defaults to radius_m."
           },
+          "wildlife": {
+            "description": "Historical flora and fauna of this place: when the player (and scenery cells) lie within radius_m, the server picks wild trees/plants and land animals from these weighted catalogs instead of the global biome table. clear masks and water rules still apply.",
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "flora": {
+                "type": "array",
+                "maxItems": 64,
+                "items": {
+                  "$ref": "#/$defs/wildlife_entry"
+                }
+              },
+              "fauna": {
+                "type": "array",
+                "maxItems": 64,
+                "items": {
+                  "$ref": "#/$defs/wildlife_entry"
+                }
+              },
+              "radius_m": {
+                "type": "number",
+                "exclusiveMinimum": 0,
+                "maximum": 20000,
+                "description": "How far from the place the overlay applies; defaults to radius_m of the place, or 500 m."
+              },
+              "density": {
+                "type": "number",
+                "exclusiveMinimum": 0,
+                "maximum": 8,
+                "description": "Multiplies spawn presence inside the overlay (1 = same rate as the global grid); default 1."
+              }
+            }
+          },
           "spawn": {
             "type": "boolean",
             "description": "New characters of the world appear here. At most one place of a disk; with several disks the first one in the order of application wins."
@@ -632,9 +694,30 @@
               },
               "tolerance_m": {
                 "type": "number",
-                "minimum": 1,
+                "minimum": 0,
                 "maximum": 5000000,
-                "description": "How far from the exact point a site may lie; default a twentieth of the distance, at least 30 m."
+                "description": "How far from the exact point a site may lie; default a twentieth of the distance, at least 30 m. Zero is a surveyed point: the place stands exactly there, and its `requires` are advice for the author (violations are logged by the server), not a constraint to search around - the water flow is no obstacle to a city."
+              }
+            }
+          },
+          "geo": {
+            "description": "The historical site itself, on the real planet the manifest defines (world.terrain): latitude_deg and longitude_deg in the frame of those rasters (latitude = asin(y), longitude = atan2(z, x)). The place stands exactly there: history has already decided, so `requires` is advice for the author (violations are logged by the server), not a constraint to search around. Not with `at`, `locate`, `parent` or `near`.",
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "latitude_deg",
+              "longitude_deg"
+            ],
+            "properties": {
+              "latitude_deg": {
+                "type": "number",
+                "minimum": -90,
+                "maximum": 90
+              },
+              "longitude_deg": {
+                "type": "number",
+                "minimum": -180,
+                "maximum": 180
               }
             }
           },

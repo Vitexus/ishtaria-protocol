@@ -33,9 +33,11 @@ that a manifest, NPC, track or dialogue node names are served.
 ## 2. Manifest (`datadisk.yaml`)
 
 `id` (`[a-z][a-z0-9_]{1,31}`), `version` (semver), `name`, `requires_ruleset`, `license`, `attribution`;
-optional `description`, `rating`, `cover`, `languages` (two-letter codes; default `en`), `requires`
-(`{disk, version}` minimum version, same major), `conflicts`, and `format` (this specification; `1`
-when absent). Every language listed needs `i18n/<language>.yaml` containing every key the disk uses.
+optional `description`, `rating`, `cover`, `cover_music` (track id for the cover/logo jingle),
+`ambient_music` (default travel track outside place music radii), `languages` (two-letter codes;
+default `en`), `requires` (`{disk, version}` minimum version, same major), `conflicts`, and `format`
+(this specification; `1` when absent). Every language listed needs `i18n/<language>.yaml` containing
+every key the disk uses.
 
 ## 3. Identifiers
 
@@ -46,7 +48,15 @@ Content ids and the ruleset version are stable contracts: an incompatible change
 ## 4. Content
 
 * **Places** may be placed by constraints (biome, height, slope, distance to other places) and are persisted
-  once; one place may be the `spawn` point; a child place of a walled town (`size: town`) may be pinned with `at: gate` or `at: alley`. **NPCs** stand at a place, choose a character model and name a
+  once; one place may be the `spawn` point; a child place of a walled town (`size: town`) may be pinned with `at: gate` or `at: alley`. When the disk defines the world's real planet (`world.terrain`), a place may also be
+  pinned to its historical site with `geo: {latitude_deg, longitude_deg}` in the frame of the rasters
+  (`latitude = asin(y)`, `longitude = atan2(z, x)`): it stands exactly there, history having already decided,
+  and its `requires` are advice for the author, not a constraint to search around. The same is true of a
+  `locate` with `tolerance_m: 0`: a surveyed point stands exactly where it was measured - a water flow is no
+  obstacle to a city, which adapts to it (bridges on its roads, openings in its walls). A place may declare
+  `wildlife: {flora, fauna, radius_m, density}` so wild scenery and land animals inside that radius use the
+  listed catalog weights instead of the global biome table (cleared ground and water rules still apply).
+  **NPCs** stand at a place, choose a character model and name a
   dialogue. **Quests** are stage machines (`reach` stages advance when the player arrives). A quest may name a
   `start_place` and a stage a `guide` place; the server shows them as markers once the player holds the aetherglass.
 * **Dialogues** are trees: a node shows a `text_key` with `choices`, or is a `branch` (automatic routing,

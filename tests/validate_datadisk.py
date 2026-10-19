@@ -113,6 +113,8 @@ def check_disk(disk_dir, allow_draft):
 
     for place in places.values():
         key(disk_dir / "places", place["name_key"])
+        if "geo" in place and not manifest.get("world", {}).get("terrain"):
+            err(disk_dir / "places", f"{place['id']}: pinned to a historical site, but the disk does not define the world's real planet")
         for ref in [place.get("parent"), place.get("locate", {}).get("from")] + [n["place"] for n in place.get("requires", {}).get("near", [])]:
             if ref and local(ref) and ref not in places:
                 err(disk_dir / "places", f"{place['id']}: unknown place {ref}")
