@@ -17,11 +17,13 @@ npcs/*.yaml            characters (list)         -> $defs/npcs
 dialogues/<id>.yaml    one decision tree each    -> $defs/dialogue
 quests/<id>.yaml       one stage machine each    -> $defs/quest
 lore/*.yaml            codex entries (list)      -> $defs/lore
+knowledge.yaml         knowledge cards (list)    -> $defs/knowledge
 music/*.yaml           tracks (list)             -> $defs/music
 i18n/<language>.yaml   every text key, per language the disk declares -> $defs/strings
 media/portraits/       PNG/JPEG (<= 1 MiB), named by an NPC's `portrait`
 media/music/           OGG Vorbis (<= 8 MiB), named by a track's `file`
 media/models/          glTF binary `.glb` (<= 4 MiB), named by an NPC's `character.model`; `pack`/`skin` stay the fallback
+media/knowledge/       PNG/JPEG (<= 1 MiB), named by a knowledge card's `image`
 media/cover/           PNG/JPEG cover (<= 1 MiB), named by the manifest's `cover`
 media/voice/<language>/<text_key>.ogg   spoken lines (<= 2 MiB each), see section 6
 voice/voices.yaml      settings of the voice synthesizer (build tool only)  -> $defs/voices
@@ -59,6 +61,12 @@ Content ids and the ruleset version are stable contracts: an incompatible change
   **NPCs** stand at a place, choose a character model and name a
   dialogue. **Quests** are stage machines (`reach` stages advance when the player arrives). A quest may name a
   `start_place` and a stage a `guide` place; the server shows them as markers once the player holds the aetherglass.
+* **Knowledge cards** (`knowledge.yaml`) let a character tell something true about itself: an NPC names a card
+  with `about`, and the client then offers "Tell me about yourself" at every dialogue node. A card has a title,
+  a text of two to four sentences, one picture below `media/knowledge/` with its author and licence in
+  `credit_key` (only public-domain or freely licensed pictures) and `wikipedia: {en: Title, cs: Titul}` (English
+  required; the client links to the article in its own language after the player confirms). Texts are keys, so
+  the server stores and chooses no language. See ADR 0019.
 * **Dialogues** are trees: a node shows a `text_key` with `choices`, or is a `branch` (automatic routing,
   last entry unconditional). Conditions (`flag`, `quest_stage`, `has_item`, `gold_at_least`, `all/any/not`)
   and effects (gold, items, flags, quest stages, `once`) are structured data, never scripts. The server applies

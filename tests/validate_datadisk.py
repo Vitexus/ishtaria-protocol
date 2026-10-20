@@ -90,6 +90,16 @@ def check_disk(disk_dir, allow_draft):
                     err(path, f"duplicate id {entry['id']}")
                 store[entry["id"]] = entry
 
+    knowledge = {}
+    knowledge_path = disk_dir / "knowledge.yaml"
+    if knowledge_path.is_file():
+        document = load(knowledge_path)
+        if validate("knowledge", knowledge_path, document):
+            for card in document:
+                if card["id"] in knowledge:
+                    err(knowledge_path, f"duplicate id {card['id']}")
+                knowledge[card["id"]] = card
+
     strings = {}
     for language in languages:
         path = disk_dir / "i18n" / f"{language}.yaml"
@@ -291,6 +301,13 @@ def check_disk(disk_dir, allow_draft):
     for track in music.values():
         key(disk_dir / "music", track["title_key"])
         media(disk_dir / "music", track["file"], "music")
+    for card in knowledge.values():
+        for field in ("title_key", "text_key", "credit_key"):
+            key(knowledge_path, card[field])
+        media(knowledge_path, card["image"], "portrait")
+    for npc in npcs.values():
+        if "about" in npc and npc["about"] not in knowledge:
+            err(disk_dir / "npcs", f"{npc['id']}: unknown knowledge card {npc['about']}")
     for entry in lore.values():
         key(disk_dir / "lore", entry["title_key"])
         key(disk_dir / "lore", entry["text_key"])

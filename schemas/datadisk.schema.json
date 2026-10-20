@@ -786,6 +786,10 @@
           "bio_key": {
             "$ref": "#/$defs/text_key"
           },
+          "about": {
+            "$ref": "#/$defs/local_id",
+            "description": "Knowledge card (id from knowledge.yaml) that the character tells when the player asks it to tell about itself. Without it the character offers no such option."
+          },
           "movement": {
             "description": "The character walks instead of standing at its place. Where it is depends only on its id, its place and the time (nothing is stored); servers send a route of waypoints and clients walk the character along it, with the Walk clip of its model while it moves and Idle while it stands. A character that keeps a shop (tag shop:<id>) cannot walk.",
             "type": "object",
@@ -989,6 +993,60 @@
         "music": {
           "$ref": "#/$defs/local_id",
           "description": "Track from music/*.yaml played during the conversation."
+        }
+      }
+    },
+    "knowledge": {
+      "description": "knowledge.yaml: knowledge cards that characters tell about themselves or their trade, each with one picture and a link to a Wikipedia article. Texts are translation keys; the client chooses the language of the text and of the article.",
+      "type": "array",
+      "maxItems": 256,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "title_key",
+          "text_key",
+          "image",
+          "credit_key",
+          "wikipedia"
+        ],
+        "properties": {
+          "id": {
+            "$ref": "#/$defs/local_id"
+          },
+          "title_key": {
+            "$ref": "#/$defs/text_key"
+          },
+          "text_key": {
+            "$ref": "#/$defs/text_key",
+            "description": "A short summary of two to four sentences."
+          },
+          "image": {
+            "description": "The picture, a png or jpg below media/knowledge/ (<= 1 MiB).",
+            "type": "string",
+            "pattern": "^media/knowledge/[a-z0-9_.-]+\\.(png|jpg)$"
+          },
+          "credit_key": {
+            "$ref": "#/$defs/text_key",
+            "description": "Author, work and licence of the picture. Only public-domain or freely licensed pictures may be shipped."
+          },
+          "wikipedia": {
+            "description": "Title of the article by language (two lowercase letters); English is required. The link is https://<language>.wikipedia.org/wiki/<title>; underscores for spaces, no ?, #, / or other URL syntax.",
+            "type": "object",
+            "required": [
+              "en"
+            ],
+            "propertyNames": {
+              "pattern": "^[a-z]{2}$"
+            },
+            "additionalProperties": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 100,
+              "pattern": "^[^\\s#?<>\\[\\]{}|\\\\/%\"&=+_][^\\s#?<>\\[\\]{}|\\\\/%\"&=+]*$"
+            }
+          }
         }
       }
     },
