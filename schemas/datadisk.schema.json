@@ -148,6 +148,37 @@
             }
           }
         },
+        "starting_items": {
+          "description": "Items granted once when a new player record is created on a world using this disk (never on login or reconnect).",
+          "type": "array",
+          "maxItems": 32,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "item"
+            ],
+            "properties": {
+              "item": {
+                "$ref": "#/$defs/item_id"
+              },
+              "qty": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 1000000
+              }
+            }
+          }
+        },
+        "auto_start_quests": {
+          "description": "Local quest ids started at character creation (stage = the quest's start_stage).",
+          "type": "array",
+          "maxItems": 16,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/local_id"
+          }
+        },
         "languages": {
           "type": "array",
           "minItems": 1,
@@ -376,6 +407,59 @@
               }
             }
           }
+        },
+        "flourish": {
+          "description": "Visual duel / flourish clips played by the client (no damage). Returned with the dialogue reply.",
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 8,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "actor",
+              "clip"
+            ],
+            "properties": {
+              "actor": {
+                "enum": [
+                  "npc",
+                  "player"
+                ]
+              },
+              "clip": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]{0,31}$"
+              }
+            }
+          }
+        },
+        "set_playable": {
+          "description": "Hand the player another body (pack character, optional datadisk model, optional NPC to hide while playing as them).",
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "character"
+          ],
+          "properties": {
+            "character": {
+              "type": "string",
+              "pattern": "^[a-z]+/[a-zA-Z0-9_]+$",
+              "maxLength": 48
+            },
+            "model": {
+              "type": "string",
+              "pattern": "^media/models/[a-z0-9_./-]+\\.glb$",
+              "maxLength": 120
+            },
+            "hide_npc": {
+              "$ref": "#/$defs/local_id"
+            }
+          }
+        },
+        "teleport_place": {
+          "description": "Move the player to a placed story place (abstracted epic travel). Qualified on load.",
+          "$ref": "#/$defs/ref"
         }
       },
       "additionalProperties": false
@@ -1074,6 +1158,22 @@
           "description": "Place where the quest begins; the aetherglass compass shows it as the next story point until the quest is started.",
           "$ref": "#/$defs/ref"
         },
+        "excerpt": {
+          "description": "Tablet prologue shown when the quest first appears: paraphrase and optional Akkadian line.",
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "paraphrase_key"
+          ],
+          "properties": {
+            "paraphrase_key": {
+              "$ref": "#/$defs/text_key"
+            },
+            "akkadian_key": {
+              "$ref": "#/$defs/text_key"
+            }
+          }
+        },
         "stages": {
           "type": "object",
           "minProperties": 1,
@@ -1118,6 +1218,23 @@
                   },
                   "goto": {
                     "$ref": "#/$defs/local_id"
+                  }
+                }
+              },
+              "fail_restart": {
+                "description": "When the player dies or a quest companion fails during this stage, reset here instead of the quest start_stage/start_place.",
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "stage",
+                  "place"
+                ],
+                "properties": {
+                  "stage": {
+                    "$ref": "#/$defs/local_id"
+                  },
+                  "place": {
+                    "$ref": "#/$defs/ref"
                   }
                 }
               }

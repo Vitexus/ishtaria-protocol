@@ -56,7 +56,14 @@ def check_disk(disk_dir, allow_draft):
     errors = []
 
     def err(path, message):
-        errors.append(f"{path.relative_to(disk_dir) if path != disk_dir else '.'}: {message}")
+        if path == disk_dir:
+            where = "."
+        else:
+            try:
+                where = path.relative_to(disk_dir)
+            except ValueError:
+                where = path
+        errors.append(f"{where}: {message}")
 
     def validate(name, path, document):
         found = sorted(definition(name).iter_errors(document), key=lambda e: list(e.path))
