@@ -123,7 +123,7 @@
           "pattern": "^[a-z]+/[A-Za-z0-9_]{1,48}$"
         },
         "player_model": {
-          "description": "A glTF binary below media/models/ (<= 4 MiB, in metres, +Y up, a skeleton with clips named Idle and Walk) that clients draw for the player_character instead of its pack look, which stays the fallback while the model loads. Requires player_character.",
+          "description": "A glTF binary below media/models/ (<= 4 MiB, in metres, +Y up, a skeleton with clips named Idle and Walk, and optionally Run, Jump, Sit, Swim, Die) that clients draw for the player_character instead of its pack look, which stays the fallback while the model loads. Requires player_character.",
           "type": "string",
           "pattern": "^media/models/[a-z0-9_]+\\.glb$"
         },
