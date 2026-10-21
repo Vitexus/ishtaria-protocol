@@ -49,10 +49,16 @@ Content ids and the ruleset version are stable contracts: an incompatible change
 
 ## 4. Content
 
+* **Biomes** may be painted over the real planet with `world.biomes.map`: an 8-bit P5 PGM of the size of the
+  heightmap (same frame, row 0 at +90 degrees, column 0 at -180 degrees). A pixel is `0` where the generator
+  decides, or a land biome: `3` lowland, `4` grassland, `5` temperate_forest, `6` mountain, `7` polar. Painted
+  pixels replace the derived biome of land cells only; sea, lakes and rivers follow the relief. What the disk
+  leaves unpainted, and every object it does not define (trees, rocks, plants), the generator still decides
+  itself from the biome.
 * **Places** may be placed by constraints (biome, height, slope, distance to other places) and are persisted
   once; one place may be the `spawn` point; a child place of a walled town (`size: town`) may be pinned with `at: gate` or `at: alley`. When the disk defines the world's real planet (`world.terrain`), a place may also be
   pinned to its historical site with `geo: {latitude_deg, longitude_deg}` in the frame of the rasters
-  (`latitude = asin(y)`, `longitude = atan2(z, x)`): it stands exactly there, history having already decided,
+  (`latitude = asin(y)`, `longitude = atan2(-z, x)`): it stands exactly there, history having already decided,
   and its `requires` are advice for the author, not a constraint to search around. The same is true of a
   `locate` with `tolerance_m: 0`: a surveyed point stands exactly where it was measured - a water flow is no
   obstacle to a city, which adapts to it (bridges on its roads, openings in its walls). A place may declare

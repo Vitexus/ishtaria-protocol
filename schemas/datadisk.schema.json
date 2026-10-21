@@ -27,6 +27,10 @@
           "type": "number",
           "exclusiveMinimum": 0,
           "maximum": 1000
+        },
+        "waterside": {
+          "type": "boolean",
+          "description": "When true, this fauna (or flora) only spawns within about 60 m of patch water, a river, or the sea. Default false."
         }
       }
     },
@@ -242,12 +246,25 @@
             "heightmap": {
               "type": "string",
               "pattern": "^media/world/[a-z0-9_]+\\.pgm$",
-              "description": "Equirectangular relief of the whole planet as a binary P5 PGM (16-bit, maxval 65535, big-endian; width = 2 x height), row 0 at +90 degrees, column 0 at -180 degrees. A pixel is the elevation in metres as a signed 16-bit value: 0 is sea level, land is positive, bathymetry is negative. The worldgen strips it onto the cube-sphere with latitude = asin(y) and longitude = atan2(z, x), so the server's compass is the real north of the planet."
+              "description": "Equirectangular relief of the whole planet as a binary P5 PGM (16-bit, maxval 65535, big-endian; width = 2 x height), row 0 at +90 degrees, column 0 at -180 degrees. A pixel is the elevation in metres as a signed 16-bit value: 0 is sea level, land is positive, bathymetry is negative. The worldgen strips it onto the cube-sphere with latitude = asin(y) and longitude = atan2(-z, x), so the server's compass is the real north of the planet."
             },
             "water": {
               "type": "string",
               "pattern": "^media/world/[a-z0-9_]+\\.pgm$",
               "description": "Water mask of the same size (P5, 8-bit, maxval 255): 0 is land, 255 is water (sea, lakes, rivers). It overrides the heights at the coastline: water never rises above sea level and land never sinks below it, so shallow seas (the Persian Gulf) stay sea and dry depressions (Qattara) stay land however the 8-bit strip quantises them. Rivers and reconstructed historical shorelines live here."
+            }
+          }
+        },
+        "biomes": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["map"],
+          "description": "Optional land biomes painted over the planet; whatever the disk leaves out the world generator decides itself. Water is never painted.",
+          "properties": {
+            "map": {
+              "type": "string",
+              "pattern": "^media/world/[a-z0-9_]+\\.pgm$",
+              "description": "Equirectangular P5 PGM of the size of the heightmap (8-bit, maxval 255, row 0 at +90 degrees, column 0 at -180 degrees). A pixel is 0 where the generator decides, or a land biome: 3 lowland, 4 grassland, 5 temperate_forest, 6 mountain, 7 polar. Painted pixels replace the derived biome of land cells only: sea, lakes and rivers still follow the relief."
             }
           }
         }
@@ -644,6 +661,10 @@
                 "minimum": 50,
                 "maximum": 5000,
                 "description": "Distance up to which the server announces the building; default 600."
+              },
+              "at_sea": {
+                "type": "boolean",
+                "description": "When true, the model stands at mean sea level (ships and floating docks) instead of on the terrain height at ground_m. Default false."
               }
             }
           },
@@ -785,7 +806,7 @@
             }
           },
           "geo": {
-            "description": "The historical site itself, on the real planet the manifest defines (world.terrain): latitude_deg and longitude_deg in the frame of those rasters (latitude = asin(y), longitude = atan2(z, x)). The place stands exactly there: history has already decided, so `requires` is advice for the author (violations are logged by the server), not a constraint to search around. Not with `at`, `locate`, `parent` or `near`.",
+            "description": "The historical site itself, on the real planet the manifest defines (world.terrain): latitude_deg and longitude_deg in the frame of those rasters (latitude = asin(y), longitude = atan2(-z, x)). The place stands exactly there: history has already decided, so `requires` is advice for the author (violations are logged by the server), not a constraint to search around. Not with `at`, `locate`, `parent` or `near`.",
             "type": "object",
             "additionalProperties": false,
             "required": [
