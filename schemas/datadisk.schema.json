@@ -1180,7 +1180,7 @@
           "$ref": "#/$defs/ref"
         },
         "excerpt": {
-          "description": "Tablet prologue shown when the quest first appears: paraphrase and optional Akkadian line.",
+          "description": "Clay-tablet prologue when the quest first appears: spoken paraphrase (narrator voice + bottom subtitles) and optional Latin Akkadian carved as cuneiform on the tablet.",
           "type": "object",
           "additionalProperties": false,
           "required": [
