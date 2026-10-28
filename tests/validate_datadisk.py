@@ -107,6 +107,16 @@ def check_disk(disk_dir, allow_draft):
                     err(knowledge_path, f"duplicate id {card['id']}")
                 knowledge[card["id"]] = card
 
+    achievements = {}
+    achievements_path = disk_dir / "achievements.yaml"
+    if achievements_path.is_file():
+        document = load(achievements_path)
+        if validate("achievements", achievements_path, document):
+            for entry in document:
+                if entry["id"] in achievements:
+                    err(achievements_path, f"duplicate id {entry['id']}")
+                achievements[entry["id"]] = entry
+
     strings = {}
     for language in languages:
         path = disk_dir / "i18n" / f"{language}.yaml"
@@ -305,9 +315,18 @@ def check_disk(disk_dir, allow_draft):
             for relative in (structure["model"], structure.get("collision")):
                 if relative:
                     model(disk_dir / "places", relative)
+            about = structure.get("about")
+            if about and ":" not in about and about not in knowledge:
+                err(disk_dir / "places", f"{place['id']}: unknown knowledge card {about}")
+            achievement = structure.get("achievement")
+            if achievement and ":" not in achievement and achievement not in achievements:
+                err(disk_dir / "places", f"{place['id']}: unknown achievement {achievement}")
     for track in music.values():
         key(disk_dir / "music", track["title_key"])
         media(disk_dir / "music", track["file"], "music")
+    for entry in achievements.values():
+        key(achievements_path, entry["title_key"])
+        key(achievements_path, entry["description_key"])
     for card in knowledge.values():
         for field in ("title_key", "text_key", "credit_key"):
             key(knowledge_path, card[field])

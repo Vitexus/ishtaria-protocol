@@ -665,7 +665,20 @@
               "at_sea": {
                 "type": "boolean",
                 "description": "When true, the model stands at mean sea level (ships and floating docks) instead of on the terrain height at ground_m. Default false."
+              },
+              "about": {
+                "$ref": "#/$defs/ref",
+                "description": "Knowledge card (id from knowledge.yaml) a player standing at the structure can read, such as an inscribed tablet (POST /story/places/{id}/read). Clients learn it as `readable` on the structure's world object."
+              },
+              "achievement": {
+                "$ref": "#/$defs/ref",
+                "description": "Achievement (id from achievements.yaml) the player earns by reading `about` at the structure. Requires `about`."
               }
+            },
+            "dependentRequired": {
+              "achievement": [
+                "about"
+              ]
             }
           },
           "terrain": {
@@ -1098,6 +1111,55 @@
         "music": {
           "$ref": "#/$defs/local_id",
           "description": "Track from music/*.yaml played during the conversation."
+        }
+      }
+    },
+    "achievements": {
+      "description": "achievements.yaml: achievements of the disk, shown after the engine's own and qualified as <disk>:<id>. Ids are permanent once released: characters keep what they earned, and a Steam build names each achievement <DISK>__<ID> in capitals, so an id never holds a double underscore. Texts are translation keys of the disk.",
+      "type": "array",
+      "maxItems": 128,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "title_key",
+          "description_key",
+          "icon"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z0-9]+(_[a-z0-9]+)*$",
+            "maxLength": 40,
+            "description": "Lowercase letters and digits in words joined by single underscores."
+          },
+          "title_key": {
+            "$ref": "#/$defs/text_key"
+          },
+          "description_key": {
+            "$ref": "#/$defs/text_key",
+            "description": "What earns it; a hidden achievement shows it only once earned."
+          },
+          "icon": {
+            "$ref": "#/$defs/item_id",
+            "description": "An item whose inventory icon the client shows."
+          },
+          "category": {
+            "type": "string",
+            "enum": [
+              "progress",
+              "gathering",
+              "magic",
+              "social",
+              "story"
+            ],
+            "description": "Default story."
+          },
+          "hidden": {
+            "type": "boolean",
+            "description": "Title and description stay secret until it is earned; default false."
+          }
         }
       }
     },

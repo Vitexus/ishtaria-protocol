@@ -18,6 +18,7 @@ dialogues/<id>.yaml    one decision tree each    -> $defs/dialogue
 quests/<id>.yaml       one stage machine each    -> $defs/quest
 lore/*.yaml            codex entries (list)      -> $defs/lore
 knowledge.yaml         knowledge cards (list)    -> $defs/knowledge
+achievements.yaml      achievements (list)       -> $defs/achievements
 music/*.yaml           tracks (list)             -> $defs/music
 i18n/<language>.yaml   every text key, per language the disk declares -> $defs/strings
 media/portraits/       PNG/JPEG (<= 1 MiB), named by an NPC's `portrait`
@@ -73,6 +74,14 @@ Content ids and the ruleset version are stable contracts: an incompatible change
   `credit_key` (only public-domain or freely licensed pictures) and `wikipedia: {en: Title, cs: Titul}` (English
   required; the client links to the article in its own language after the player confirms). Texts are keys, so
   the server stores and chooses no language. See ADR 0019.
+  A place's `structure` may name a card too (`about`): the player reads it standing at the structure (an inscribed
+  tablet, `POST /story/places/{id}/read`, within 3 m). The structure's world object then carries `readable: true`.
+* **Achievements** (`achievements.yaml`) are listed after the engine's own (`etc/achievements.json`) with ids
+  qualified as `<disk>:<id>`: a title and a description key, an item id as `icon`, a `category` (default `story`)
+  and `hidden`. The server alone grants them, inside the action that earns one; today the only action a disk
+  can name is reading a structure (`structure.achievement`, which requires `about`). Ids are permanent once
+  released (characters keep what they earned) and use single underscores only: a Steam build names an
+  achievement `<DISK>__<ID>` in capitals (`gilgamesh:foundation_reader` -> `GILGAMESH__FOUNDATION_READER`).
 * **Dialogues** are trees: a node shows a `text_key` with `choices`, or is a `branch` (automatic routing,
   last entry unconditional). Conditions (`flag`, `quest_stage`, `has_item`, `gold_at_least`, `all/any/not`)
   and effects (gold, items, flags, quest stages, `once`) are structured data, never scripts. The server applies
