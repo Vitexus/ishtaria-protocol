@@ -97,6 +97,15 @@ def check_disk(disk_dir, allow_draft):
                     err(path, f"duplicate id {entry['id']}")
                 store[entry["id"]] = entry
 
+    buildings = {}
+    for path in sorted((disk_dir / "buildings").glob("*.yaml")):
+        document = load(path)
+        if not validate("buildings", path, document):
+            continue
+        if document["place"] in buildings:
+            err(path, f"a second buildings file for place {document['place']}")
+        buildings[document["place"]] = (path, document)
+
     knowledge = {}
     knowledge_path = disk_dir / "knowledge.yaml"
     if knowledge_path.is_file():
@@ -296,7 +305,7 @@ def check_disk(disk_dir, allow_draft):
         movement = npc.get("movement")
         if movement:
             beat = movement.get("waypoints", [])
-            if movement["kind"] == "patrol" and len(beat) < 2:
+            if movement["kind"] == "patrol" and len(beat) < 2 and not movement.get("follow"):
                 err(disk_dir / "npcs", f"{npc['id']}: a patrol needs waypoints")
             if movement["kind"] == "wander" and beat:
                 err(disk_dir / "npcs", f"{npc['id']}: a wanderer has no waypoints")
@@ -321,6 +330,13 @@ def check_disk(disk_dir, allow_draft):
             achievement = structure.get("achievement")
             if achievement and ":" not in achievement and achievement not in achievements:
                 err(disk_dir / "places", f"{place['id']}: unknown achievement {achievement}")
+    for name, (path, document) in buildings.items():
+        if name not in places:
+            err(path, f"buildings of unknown place {name}")
+        elif "geo" not in places[name] and "locate" not in places[name] and "at" not in places[name]:
+            err(path, f"place {name} has no position of its own for the buildings to be measured from")
+        for relative in sorted({item["model"] for item in document["items"]}):
+            model(path, relative)
     for track in music.values():
         key(disk_dir / "music", track["title_key"])
         media(disk_dir / "music", track["file"], "music")

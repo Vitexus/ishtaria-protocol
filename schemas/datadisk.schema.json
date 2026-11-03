@@ -131,6 +131,54 @@
           "type": "string",
           "pattern": "^media/models/[a-z0-9_]+\\.glb$"
         },
+        "settlement_houses": {
+          "description": "The houses of the towns and villages the generator builds in a world using this disk: models of the disk, scaled to a plot drawn from the ranges and turned to the plaza, instead of the engine's low-poly kit houses (its temples and towers are then left out too).",
+          "type": "array",
+          "maxItems": 16,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["model", "native_m", "width_m", "depth_m", "height_m"],
+            "properties": {
+              "model": {"type": "string", "pattern": "^media/models/([a-z0-9_]+/)*[a-z0-9_]+\\.glb$"},
+              "native_m": {"type": "array", "minItems": 3, "maxItems": 3, "items": {"type": "number", "exclusiveMinimum": 0.01, "maximum": 500}, "description": "Width, height and depth of the model in its own units."},
+              "width_m": {"type": "array", "minItems": 2, "maxItems": 2, "items": {"type": "number", "minimum": 3, "maximum": 40}},
+              "depth_m": {"type": "array", "minItems": 2, "maxItems": 2, "items": {"type": "number", "minimum": 3, "maximum": 40}},
+              "height_m": {"type": "array", "minItems": 2, "maxItems": 2, "items": {"type": "number", "minimum": 2, "maximum": 30}},
+              "sink_m": {"type": "number", "minimum": -2, "maximum": 10}
+            }
+          }
+        },
+        "ground": {
+          "description": "The ground set clients draw the land with, one the client has textures for: alluvial (dry silt plain between two rivers: steppe grass, silt, cracked mud, sand and dirt from Poly Haven). Without it the default ground is drawn. Servers announce it in /world datadisks.",
+          "type": "string",
+          "enum": ["alluvial"]
+        },
+        "astronomy": {
+          "description": "When and on which planet the story happens, so that the sky is the right one: the tilt of the axis, the turn of the planet and the precession of the star field. Every field is optional and defaults to today's Earth. Servers apply it to the sun and moon and announce it in /world solar; clients draw the sky from it.",
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "year": {
+              "description": "The astronomical year the story is set in (2700 BCE is -2699). The tilt of the axis (Laskar 2004) and the precession of the star field (Capitaine 2003) are those of that year. -9000..11000.",
+              "type": "number",
+              "minimum": -9000,
+              "maximum": 11000
+            },
+            "obliquity_deg": {
+              "description": "The tilt of the planet's axis in degrees, instead of the one the year gives (another planet, or a chosen sky). 0..60.",
+              "type": "number",
+              "minimum": 0,
+              "maximum": 60
+            },
+            "sidereal_day_seconds": {
+              "description": "One turn of the planet against the stars, in seconds (today's Earth 86164.0905).",
+              "type": "number",
+              "minimum": 3600,
+              "maximum": 400000
+            }
+          }
+        },
         "player_body": {
           "description": "The body of the player_character: how tall it stands and how much more than a man it endures. Clients draw the character that tall (the creator's people are 1.8 m) and the server hurts it less when it falls: the drop counts against the body's size and the damage is divided by toughness. Requires player_character.",
           "type": "object",
@@ -592,8 +640,10 @@
                 "enum": [
                   "town",
                   "graveyard",
-                  "fortress"
-                ]
+                  "fortress",
+                  "pasture"
+                ],
+                "description": "pasture: only a flock of sheep and goats and the shepherd who drives it from a fold beside the place to a pasture and back, for a place whose buildings the disk lists itself."
               },
               "size": {
                 "enum": [
@@ -665,6 +715,20 @@
               "at_sea": {
                 "type": "boolean",
                 "description": "When true, the model stands at mean sea level (ships and floating docks) instead of on the terrain height at ground_m. Default false."
+              },
+              "on_water": {
+                "type": "boolean",
+                "description": "When true, the model floats at the water surface of the place's landscape patch (a river, a pond: boats, floating docks) instead of standing on the bed; on dry ground it stands on the terrain. No collider. Default false."
+              },
+              "vehicle": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["speed_m_s"],
+                "properties": {
+                  "speed_m_s": {"type": "number", "minimum": 0.2, "maximum": 30, "description": "Metres per second over the water at full speed."},
+                  "clip": {"type": "string", "pattern": "^[a-z0-9_]{1,32}$|^[A-Za-z0-9_]{1,32}$", "description": "The clip of the rider's model played while the vehicle moves; the rider keeps the idle clip without it."}
+                },
+                "description": "The structure is a vehicle a player boards (E) and steers over the water at this speed, getting off at a shore. Needs on_water or at_sea. Vehicles differ only in speed and clip; the engine moves them all the same way."
               },
               "about": {
                 "$ref": "#/$defs/ref",
@@ -778,7 +842,7 @@
               "density": {
                 "type": "number",
                 "exclusiveMinimum": 0,
-                "maximum": 8,
+                "maximum": 16,
                 "description": "Multiplies spawn presence inside the overlay (1 = same rate as the global grid); default 1."
               }
             }
@@ -944,6 +1008,10 @@
                 "default": 6,
                 "description": "How long it stands between walks (at each waypoint of a patrol)."
               },
+              "follow": {
+                "$ref": "#/$defs/ref",
+                "description": "A patrol that follows the road of a trail of the disk (`id` in trails/*.yaml) to its end and back, instead of listing waypoints: the server takes them from the road once it is laid. Needs kind patrol and no waypoints."
+              },
               "waypoints": {
                 "type": "array",
                 "minItems": 2,
@@ -971,8 +1039,10 @@
           "tags": {
             "type": "array",
             "uniqueItems": true,
+            "description": "Free labels; `shop:<id>` (an id of the server's etc/shops.json, such as shop:general) makes the character a merchant who buys and sells for gold.",
             "items": {
-              "$ref": "#/$defs/local_id"
+              "type": "string",
+              "pattern": "^(shop:)?[a-z][a-z0-9_]{0,47}$"
             }
           },
           "portrait": {
@@ -1114,6 +1184,72 @@
         }
       }
     },
+    "buildings": {
+      "description": "buildings/<name>.yaml: many buildings of the disk around the anchor of one of its places (a city's houses), each drawn from a glTF binary of the disk and standing on the ground. For the few buildings that need a place of their own use the place's structure. The file is data a tool writes (Uruk: tools/build_buildings.py), not text to edit.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["place", "items"],
+      "properties": {
+        "place": {
+          "$ref": "#/$defs/local_id",
+          "description": "The place whose anchor the positions are measured from."
+        },
+        "items": {
+          "type": "array",
+          "maxItems": 6000,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["model", "x", "z", "yaw_deg", "scale", "footprint"],
+            "properties": {
+              "model": {
+                "type": "string",
+                "pattern": "^media/models/([a-z0-9_]+/)*[a-z0-9_]+\\.glb$",
+                "description": "A glTF binary (<= 4 MiB, metres, +Y up) whose origin is the middle of its footprint on the ground; its front is +Z."
+              },
+              "x": {
+                "type": "number",
+                "minimum": -4000,
+                "maximum": 4000,
+                "description": "Metres east of the anchor of the place."
+              },
+              "z": {
+                "type": "number",
+                "minimum": -4000,
+                "maximum": 4000,
+                "description": "Metres south of the anchor of the place (the client's local z axis, as structure.offset_m)."
+              },
+              "yaw_deg": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 360,
+                "description": "Compass bearing the model's front (+Z) points to: 0 north, 90 east, 180 south."
+              },
+              "scale": {
+                "type": "array",
+                "minItems": 3,
+                "maxItems": 3,
+                "items": {"type": "number", "minimum": 0.05, "maximum": 20},
+                "description": "Metres per model unit along the model's x (width), y (height) and z (depth) axes."
+              },
+              "footprint": {
+                "type": "array",
+                "minItems": 2,
+                "maxItems": 2,
+                "items": {"type": "number", "minimum": 1, "maximum": 100},
+                "description": "Width (along the model's x) and depth (along z) of the plot in metres: the box that blocks walking, and the ground the building is levelled on - the model stands on the lowest terrain under it."
+              },
+              "sink_m": {
+                "type": "number",
+                "minimum": -2,
+                "maximum": 10,
+                "description": "Metres the model is sunk below the lowest terrain under its plot (default 3). Models do not share one floor level, so it is set per model."
+              }
+            }
+          }
+        }
+      }
+    },
     "achievements": {
       "description": "achievements.yaml: achievements of the disk, shown after the engine's own and qualified as <disk>:<id>. Ids are permanent once released: characters keep what they earned, and a Steam build names each achievement <DISK>__<ID> in capitals, so an id never holds a double underscore. Texts are translation keys of the disk.",
       "type": "array",
@@ -1240,6 +1376,11 @@
         "start_place": {
           "description": "Place where the quest begins; the aetherglass compass shows it as the next story point until the quest is started.",
           "$ref": "#/$defs/ref"
+        },
+        "known_places": {
+          "description": "Places that go on the map and the compass as soon as the quest is begun, and stay there, before any stage points at them.",
+          "type": "array",
+          "items": { "$ref": "#/$defs/ref" }
         },
         "excerpt": {
           "description": "Clay-tablet prologue when the quest first appears: spoken paraphrase (narrator voice + bottom subtitles) and optional Latin Akkadian carved as cuneiform on the tablet.",
