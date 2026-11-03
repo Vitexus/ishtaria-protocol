@@ -1295,6 +1295,14 @@
           "hidden": {
             "type": "boolean",
             "description": "Title and description stay secret until it is earned; default false."
+          },
+          "read_all": {
+            "type": "array",
+            "maxItems": 16,
+            "items": {
+              "$ref": "#/$defs/ref"
+            },
+            "description": "Places whose readable structure (`about`) the character must all have read; the achievement is earned with the last one (for example every tablet of one legend)."
           }
         }
       }
