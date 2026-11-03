@@ -525,6 +525,15 @@
         "teleport_place": {
           "description": "Move the player to a placed story place (abstracted epic travel). Qualified on load.",
           "$ref": "#/$defs/ref"
+        },
+        "reveal_places": {
+          "description": "Tell the player of places (ids of places of the disk, qualified on load): from then on they stay on the map and compass, like the places of begun quests. A character who says where something lies.",
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 16,
+          "items": {
+            "$ref": "#/$defs/ref"
+          }
         }
       },
       "additionalProperties": false
