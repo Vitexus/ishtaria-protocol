@@ -1298,7 +1298,7 @@
           },
           "read_all": {
             "type": "array",
-            "maxItems": 16,
+            "maxItems": 64,
             "items": {
               "$ref": "#/$defs/ref"
             },
