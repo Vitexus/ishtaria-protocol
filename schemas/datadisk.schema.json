@@ -113,6 +113,10 @@
           "description": "Cover image (png or jpg, at most 1 MiB) that clients show when they connect to a server using the disk.",
           "$ref": "#/$defs/media_path"
         },
+        "loading_marker": {
+          "description": "Image (png, at most 1 MiB) the client's loading bar draws at the bar's current value. Without it the engine's bar only differs in colour between the finished and the remaining part. The figure should face right: the bar fills from left to right.",
+          "$ref": "#/$defs/media_path"
+        },
         "cover_music": {
           "description": "Track id from music/*.yaml played once while the cover image is shown (logo jingle; prefer loop: false).",
           "$ref": "#/$defs/local_id"
@@ -130,6 +134,15 @@
           "description": "A glTF binary below media/models/ (<= 4 MiB, in metres, +Y up, a skeleton with clips named Idle and Walk, and optionally Run, Jump, Sit, Swim, Die) that clients draw for the player_character instead of its pack look, which stays the fallback while the model loads. Requires player_character.",
           "type": "string",
           "pattern": "^media/models/[a-z0-9_]+\\.glb$"
+        },
+        "ordinal_numerals": {
+          "description": "How clients write the number of a life under one login on a memorial (the second life of a login is II). roman is the engine default; sumerian writes cuneiform numerals (U+12079 = 1, U+1230B = 10, base 60) and requires ordinal_font.",
+          "enum": ["roman", "sumerian"]
+        },
+        "ordinal_font": {
+          "description": "A .ttf or .otf below media/fonts/ (<= 1 MiB) with the glyphs of ordinal_numerals; clients fetch it from the server's media route.",
+          "type": "string",
+          "pattern": "^media/fonts/[a-z0-9_.-]+\\.(ttf|otf)$"
         },
         "settlement_houses": {
           "description": "The houses of the towns and villages the generator builds in a world using this disk: models of the disk, scaled to a plot drawn from the ranges and turned to the plaza, instead of the engine's low-poly kit houses (its temples and towers are then left out too).",
@@ -153,6 +166,20 @@
           "description": "The ground set clients draw the land with, one the client has textures for: alluvial (dry silt plain between two rivers: steppe grass, silt, cracked mud, sand and dirt from Poly Haven). Without it the default ground is drawn. Servers announce it in /world datadisks.",
           "type": "string",
           "enum": ["alluvial"]
+        },
+        "ground_layers": {
+          "description": "Which ground layers the client draws each land biome with, laid over the `ground` set: the key is a land biome (lowland, grassland, temperate_forest, mountain, polar), `beach` or `scree`; the value is one to three layers (base, alternate and accent ground; a beach or scree takes the first). Layers are the folders of the client's assets/terrain (Poly Haven, CC0), named in the server's GROUND_LAYERS. Servers announce it in /world datadisks.",
+          "type": "object",
+          "additionalProperties": false,
+          "propertyNames": {"enum": ["lowland", "grassland", "temperate_forest", "mountain", "polar", "beach", "scree"]},
+          "patternProperties": {
+            "^[a-z_]+$": {
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 3,
+              "items": {"enum": ["grass_ground", "forest_ground_06", "gravelly_sand", "gravel_ground_01", "gray_rocks", "grass_path_2", "dry_mud_field_001", "aerial_sand", "dirt_aerial_03", "mud_cracked_dry_03", "brown_mud_leaves_01", "forest_leaves_02", "dry_ground_01", "red_laterite_soil_stones", "snow_02", "rocky_terrain_02", "coast_sand_rocks_02", "grass_path_3"]}
+            }
+          }
         },
         "astronomy": {
           "description": "When and on which planet the story happens, so that the sky is the right one: the tilt of the axis, the turn of the planet and the precession of the star field. Every field is optional and defaults to today's Earth. Servers apply it to the sun and moon and announce it in /world solar; clients draw the sky from it.",
@@ -525,6 +552,11 @@
         "teleport_place": {
           "description": "Move the player to a placed story place (abstracted epic travel). Qualified on load.",
           "$ref": "#/$defs/ref"
+        },
+        "sky_ship": {
+          "description": "Easter egg: id of a ship of the disk's sky_flyers.yaml. The ship flies low over the player (an event the client draws) and the player earns the ship's achievement.",
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]{0,47}$"
         },
         "reveal_places": {
           "description": "Tell the player of places (ids of places of the disk, qualified on load): from then on they stay on the map and compass, like the places of begun quests. A character who says where something lies.",
@@ -1193,6 +1225,31 @@
         }
       }
     },
+    "river": {
+      "description": "rivers/<name>.yaml: a river (or a list of rivers: a drainage network is hundreds of short ones, each file under a megabyte) of the disk's real planet (needs world.terrain), told as a course of points from its source to its mouth. The server carves a channel into the ground along it and the client draws its water, wherever no landscape patch replaces the ground (a patch carries its own river and the course should pass through it). The coarse planet map has rivers a few tens of metres wide at best; a great river such as the Euphrates is told here.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "points"],
+      "properties": {
+        "id": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"},
+        "points": {
+          "description": "[latitude, longitude, width_m] in degrees and metres, downstream: the width of the water at that point (10 to 400 m).",
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 4000,
+          "items": {
+            "type": "array",
+            "minItems": 3,
+            "maxItems": 3,
+            "prefixItems": [
+              {"type": "number", "minimum": -90, "maximum": 90},
+              {"type": "number", "minimum": -180, "maximum": 180},
+              {"type": "number", "minimum": 10, "maximum": 400}
+            ]
+          }
+        }
+      }
+    },
     "buildings": {
       "description": "buildings/<name>.yaml: many buildings of the disk around the anchor of one of its places (a city's houses), each drawn from a glTF binary of the disk and standing on the ground. For the few buildings that need a place of their own use the place's structure. The file is data a tool writes (Uruk: tools/build_buildings.py), not text to edit.",
       "type": "object",
@@ -1252,7 +1309,12 @@
                 "type": "number",
                 "minimum": -2,
                 "maximum": 10,
-                "description": "Metres the model is sunk below the lowest terrain under its plot (default 3). Models do not share one floor level, so it is set per model."
+                "description": "Metres the model is sunk below the lowest terrain under its plot (default 3; 0 for a passable one, which is sunk below the ground under its middle). Models do not share one floor level, so it is set per model."
+              },
+              "passable": {
+                "type": "boolean",
+                "default": false,
+                "description": "A thing that lies on the ground and is walked over (a tilled field): it blocks nothing and stands at the height of the ground under its middle."
               }
             }
           }

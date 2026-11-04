@@ -106,6 +106,12 @@ def check_disk(disk_dir, allow_draft):
             err(path, f"a second buildings file for place {document['place']}")
         buildings[document["place"]] = (path, document)
 
+    for path in sorted((disk_dir / "rivers").glob("*.yaml")):
+        document = load(path)
+        # One river, or a list of them (a drainage network is hundreds of short rivers in a file).
+        for river in document if isinstance(document, list) else [document]:
+            validate("river", path, river)
+
     knowledge = {}
     knowledge_path = disk_dir / "knowledge.yaml"
     if knowledge_path.is_file():
@@ -299,6 +305,10 @@ def check_disk(disk_dir, allow_draft):
         if "player_character" not in manifest:
             err(manifest_path, "player_model needs player_character, the look it replaces")
         model(manifest_path, manifest["player_model"])
+    if manifest.get("ordinal_numerals") == "sumerian" and "ordinal_font" not in manifest:
+        err(manifest_path, "sumerian ordinal_numerals need an ordinal_font with cuneiform glyphs")
+    if "ordinal_font" in manifest and not (manifest_path.parent / manifest["ordinal_font"]).is_file():
+        err(manifest_path, f"ordinal_font {manifest['ordinal_font']} is not shipped")
     world_terrain(manifest_path, manifest)
 
     for npc in npcs.values():
