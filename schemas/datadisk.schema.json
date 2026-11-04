@@ -809,6 +809,11 @@
                 "pattern": "^media/terrain/[a-z0-9_]+\\.png$",
                 "description": "A greyscale PNG of any size (8 or 16 bit, at most 4 million pixels) over the whole rectangle: pixels above zero are built or tilled ground (streets, houses, squares, fields) where the server puts no wild trees, rocks, flowers or animals."
               },
+              "map": {
+                "type": "string",
+                "pattern": "^media/terrain/[a-z0-9_]+\\.png$",
+                "description": "An RGBA PNG (at most 4 million pixels) over the same rectangle as the heightmap: the map of the place that the client's minimap draws (houses, streets, canals, walls; transparent elsewhere). Row 0 is the north edge of the rectangle in the local frame (z grows south), column 0 the west edge."
+              },
               "extent_m": {
                 "type": "array",
                 "minItems": 2,
@@ -1005,6 +1010,16 @@
           },
           "dialogue": {
             "$ref": "#/$defs/ref"
+          },
+          "visible_if": {
+            "description": "The character stands in the world, and can be talked to, only for a player of whom this condition holds (a character the story has not brought forth yet is not there). Without it the character is always there.",
+            "$ref": "#/$defs/condition"
+          },
+          "lift_m": {
+            "description": "Metres above the ground that a character without a walk stands: on the top platform of a ziggurat, whose stairs a player climbs (0 to 200).",
+            "type": "number",
+            "minimum": 0,
+            "maximum": 200
           },
           "bio_key": {
             "$ref": "#/$defs/text_key"
