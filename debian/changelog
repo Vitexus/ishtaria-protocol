@@ -1,3 +1,10 @@
+ishtaria-protocol (0.2.0) unstable; urgency=medium
+
+  * Datadisk schema: loading_marker, NPC visible_if and lift_m,
+    terrain.map.
+
+ -- Vítězslav Dvořák <cybervitexus@gmail.com>  Wed, 04 Nov 2026 05:44:41 +0100
+
 ishtaria-protocol (0.1.0) unstable; urgency=medium
 
   * Initial packaging.
