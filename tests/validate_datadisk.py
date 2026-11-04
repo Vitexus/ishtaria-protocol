@@ -440,6 +440,9 @@ def check_disk(disk_dir, allow_draft):
 
     # Spoken lines: voice/voices.yaml (tool settings) and media/voice/<language>/<text_key>.ogg recordings.
     spoken = {n["text_key"] for d in dialogues.values() for n in d["nodes"].values() if "text_key" in n}
+    # The intro of a quest's tablet (`excerpt.paraphrase_key`) is read aloud by the narrator voice profile.
+    spoken |= {q["excerpt"]["paraphrase_key"] for q in quests.values()
+               if isinstance(q.get("excerpt"), dict) and q["excerpt"].get("paraphrase_key")}
     voices_path = disk_dir / "voice" / "voices.yaml"
     if voices_path.is_file():
         voices = load(voices_path)
@@ -448,7 +451,7 @@ def check_disk(disk_dir, allow_draft):
                 if language not in languages:
                     err(voices_path, f"model for undeclared language {language}")
             for npc_id in voices.get("npcs", {}):
-                if npc_id not in npcs:
+                if npc_id != "narrator" and npc_id not in npcs:
                     err(voices_path, f"unknown npc {npc_id}")
     voice_dir = disk_dir / "media" / "voice"
     for file in sorted(voice_dir.glob("*/*")) if voice_dir.is_dir() else []:
