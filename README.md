@@ -1,5 +1,9 @@
 # ishtaria-protocol
 
+<!-- source-notice -->
+> **Primary source:** <https://git.vitexsoftware.com/Ishtaria/ishtaria-protocol> (development happens there). **GitHub** (<https://github.com/Vitexus/ishtaria-protocol>) is a secondary mirror; packages and binaries are **not built from GitHub**.
+<!-- /source-notice -->
+
 Federation protocol of Ishtaria worlds.
 
 | File | Content |
