@@ -554,7 +554,7 @@
           "$ref": "#/$defs/ref"
         },
         "sky_ship": {
-          "description": "Easter egg: id of a ship of the disk's sky_flyers.yaml. The ship flies low over the player (an event the client draws) and the player earns the ship's achievement.",
+          "description": "Id of a ship of the disk's sky_flyers.yaml: the ship crosses the player's view (an event the client draws) and the player earns the ship's achievement.",
           "type": "string",
           "pattern": "^[a-z][a-z0-9_]{0,47}$"
         },
